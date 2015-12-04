@@ -18,5 +18,5 @@ Desired interface :
 Obvious next step :
 
 - firki_botb extends firki{}
-- firki_botb::render($string);  // same as above but with added commands
+- firki_botb::render($string, $data);  // same as above but with added commands and ability to pass $data
 - firki_botb::strip($string);  // same as above but added commands have strip handlers too
