@@ -1,6 +1,7 @@
 <?php
 
 
+# XXX maybe move this to group_post area of BotB code base
 $firkiToolbox = '
 <div class="inner t0 firkiBox">
 Firki Toolbox
@@ -18,46 +19,66 @@ Firki Toolbox
 STACK::SetExtraGlobal('$firkiToolbox');
 
 
+
+class firki {
+
+	static public render($string) {
+	}
+
+	static public strip($string) {
+	}
+
+	static public lazy_links($string, $anchor_text='', $anchor_attr='')  {
+		// this filter breaks if there is a > character before the protocal
+		// make sure line breaks <br> go before newline characters \n
+		$filter = '/((\s|^)(ht|f)tps?:\/\/[\w-?&;#~=%\(\)\+\.\/\@]+)/i';
+		if ($anchor_text == '')
+			return preg_replace($filter, "<b><a href=\"$1\" ".$anchor_attr.">$1</a></b>", $string);
+		else
+			return preg_replace($filter, "<b><a href=\"$1\" ".$anchor_attr.">".$anchor_text."</a></b>", $string);
+	}
+}
+
+
+class firki_botb extends firki {
+
+	static public render($string, $data) {
+		firki_BotB($string, $data);
+	}
+
+	static public strip($string) {
+		firkit_strip($string);
+	}
+}
+
+
 ##=======================================================================
 ##========= LYCEUM // COMMENTS == FIRKI MARKUP ANATOMER =================
 ##=======================================================================
 
+
+# XXX  should be moved to botbr_class.php
 
 function firki_enable($botbr_level, $text) {
 	if ($botbr_level >= BOTBR_LEVEL_FIRKI_ENABLE) {
 		return firki_BotB($text);
 	}
 	else {
-		return LazyLinks(InferHTMLbreaks(htmlspecialchars($text)));
+		return firki::lazy_links(InferHTMLbreaks(htmlspecialchars($text)));
 	}
 }
+
 
 ##  archaic code from the days of firteen.com
 
 
-function firki_BotB($text,$var1='')  {
+# XXX $data is presently a single variable
+#     should at least be an array the BotB
+#     can pass to the interpretor and it;s
+#     extended methods
+function firki_BotB($text, $data)  {
 	GLOBAL $Guy;
 	$body = str_replace("'[']", "^[^]", $text);
-	//$body .= " ";
-
-##  Hide LazyLinks
-	$URLs = array();
-	$locURLs = array();
-	/*
-		 ereg("[[:alpha:]]+://[^<>[:space:]]+[[:alnum:]/]", $body, $URLs);
-		 foreach ($URLs as $url) {
-		 $p = strpos($body,$url);
-		 if (substr($body,$p-1,1)!='[')
-		 $locURLs[$p] = $url;
-		 }
-		 foreach ($locURLs as $p => $url)  {
-	//print $url;
-	$body = str_replace($url,'^+#@locURL'.$p,$body);
-	}
-	 */
-
-
-
 	$body = htmlspecialchars($body);
 	$body = str_replace("\n", "<br>\n", $body);
 
@@ -115,6 +136,11 @@ function firki_BotB($text,$var1='')  {
 			$i++;
 		}
 
+
+
+
+# XXX MOVE TO BOTB EXTENSION
+
 		if ($param[0]=='')  {                         ## LYCEUM ARTICLE LINK
 
 			$title = $param[1];
@@ -136,6 +162,7 @@ function firki_BotB($text,$var1='')  {
 
 
 ##  a = link article attachment
+# XXX LYCEUM SPECIFIC COMMAND BY THE BOTB EXTENSION IMPLEMENTATION
 		if ($param[0]=='a') {
 			$file = 'data/lyceum_attach/'.$var1.'/'.$param[1];
 			if (is_file($file)) {
@@ -144,6 +171,8 @@ function firki_BotB($text,$var1='')  {
 			}
 			else $op .= $param[1].'<span class="t0">==MISSING FILE</span>';
 		}
+
+
 
 
 		if ($param[0]=='b') {                     ## b for open bold display
@@ -178,6 +207,9 @@ function firki_BotB($text,$var1='')  {
 			$op .= icon::Img($param[1]);
 		}
 
+
+
+# XXX NEED TO MAKE A SPECIFIC METHOD FOR BOTB EXTENSION
 		if ($param[0]=="l") {                   ## l for link
 			GLOBAL $icon;
 			$outbound = (strpos($param[1], 'battleofthebits.org')) ? FALSE : TRUE;
@@ -199,6 +231,9 @@ function firki_BotB($text,$var1='')  {
 			}
 			$op .= '</a></b>';
 		}
+
+
+
 
 		if ($param[0]=='ol')  {             ## ordered list
 			$op .= '<ol>'.$param[1].'</ol>';
@@ -293,28 +328,23 @@ function firki_BotB($text,$var1='')  {
 		$body = $menu.'</ol>'.$body;
 	}
 
-	/*
-##  Uncover LazyLinks
-foreach ($locURLs as $p => $url)
-$body = str_replace('^+#@locURL'.$p,'<b>'.a($url).'</b>',$body);
-	 */
 
-	foreach ($opFlags as $tag => $count)  {
+	foreach ($opFlags as $tag => $count) {
 		for ($i=0; $i<$count; $i++) {
 			$body .= $tag;
 		}
 	}
-	for ($i=0;$i<=spans;$i++)  { $body.='</span>'; }
+	for ($i=0;$i<=spans;$i++) { 
+		$body .= '</span>'; 
+	}
 
 
 ## LAZY LINKS REGEX
-	// XXX got a hack here for BotBr settings
-	// if they want a new window they gets one!!
 	if ($Guy->info['anchor_blank']=='on') {
-		$body = LazyLinks($body,'','target="_blank"');
+		$body = firki::lazy_links($body,'','target="_blank"');
 	}
 	else {
-		$body = LazyLinks($body);
+		$body = firki::lazy_links($body);
 	}
 
 	return $body;
