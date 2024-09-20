@@ -2,7 +2,7 @@
 
 A php solution for the firki style markup language.
 
-Read about firki syntax here : http://battleofthebits.org/lyceum/View/Firki+Markup/
+Read about firki syntax here : https://battleofthebits.com/lyceum/View/Firki%20Markup
 
 This library needs to be converted to an extensible object.  Battle of the Bits has a few unique commands that won't work on other projects.  The base class should be independant with no requirements outside of PHP v5.x
 
